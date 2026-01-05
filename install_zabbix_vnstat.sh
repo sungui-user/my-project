@@ -97,25 +97,35 @@ PUBLIC_IP=$(curl -s --max-time 5 https://api.ipify.org)
 [ -z "$PUBLIC_IP" ] && PUBLIC_IP=$(hostname -I | awk '{print $1}')
 
 ########################################
-# 7. 配置 Zabbix Agent2
+# 7. 强制重写 Zabbix Agent2 配置（IP 作为 Hostname）
 ########################################
 CONF="/etc/zabbix/zabbix_agent2.conf"
 
-sed -i "s|^Server=.*|Server=zabbix.luyaonet.com|" $CONF
-sed -i "s|^ServerActive=.*|ServerActive=zabbix.luyaonet.com|" $CONF
-sed -i "s|^Hostname=.*|Hostname=$PUBLIC_IP|" $CONF
+# 1️⃣ 彻底删除所有相关参数（不管是否注释）
+sed -i '/^[[:space:]]*Server[[:space:]]*=.*/d' "$CONF"
+sed -i '/^[[:space:]]*ServerActive[[:space:]]*=.*/d' "$CONF"
+sed -i '/^[[:space:]]*Hostname[[:space:]]*=.*/d' "$CONF"
+sed -i '/^[[:space:]]*HostnameItem[[:space:]]*=.*/d' "$CONF"
+sed -i '/^[[:space:]]*HostMetadata[[:space:]]*=.*/d' "$CONF"
+sed -i '/^[[:space:]]*Timeout[[:space:]]*=.*/d' "$CONF"
+sed -i '/^[[:space:]]*RefreshActiveChecks[[:space:]]*=.*/d' "$CONF"
 
-grep -q "^HostMetadata=" $CONF \
-  && sed -i "s|^HostMetadata=.*|HostMetadata=vps-ubuntu22|" $CONF \
-  || echo "HostMetadata=vps-ubuntu22" >> $CONF
+# 2️⃣ 明确写入我们要的最终值（IP Hostname）
+cat <<EOF >> "$CONF"
 
-grep -q "^Timeout=" $CONF \
-  && sed -i "s|^Timeout=.*|Timeout=30|" $CONF \
-  || echo "Timeout=30" >> $CONF
+### ===== Managed by install script =====
+Server=zabbix.luyaonet.com
+ServerActive=zabbix.luyaonet.com
 
-grep -q "^RefreshActiveChecks=" $CONF \
-  && sed -i "s|^RefreshActiveChecks=.*|RefreshActiveChecks=120|" $CONF \
-  || echo "RefreshActiveChecks=120" >> $CONF
+# 强制使用公网 IP 作为 Hostname
+Hostname=${PUBLIC_IP}
+
+HostMetadata=vps-ubuntu22
+Timeout=30
+RefreshActiveChecks=120
+### ====================================
+EOF
+
 
 ########################################
 # 8. UserParameter 配置
