@@ -70,15 +70,23 @@ CUR_MONTH=$(date '+%Y-%m')
 
 vnstat -i "$IFACE" -m | awk -v month="$CUR_MONTH" '
 function to_bytes(val, unit){
-    if(unit=="B") return val
-    else if(unit=="KiB") return val*1024
-    else if(unit=="MiB") return val*1024*1024
-    else if(unit=="GiB") return val*1024*1024*1024
-    else return 0
+    if(unit=="B")   return val
+    if(unit=="KiB") return val*1024
+    if(unit=="MiB") return val*1024*1024
+    if(unit=="GiB") return val*1024*1024*1024
+    if(unit=="TiB") return val*1024*1024*1024*1024
+    return 0
 }
+
 $1 == month {
-    rx = to_bytes($2, $3)
-    tx = to_bytes($5, $6)
+    n = 0
+    for(i=2;i<=NF;i++){
+        if($i ~ /^[0-9.]+$/ && $(i+1) ~ /^(B|KiB|MiB|GiB|TiB)$/){
+            n++
+            if(n==1) rx = to_bytes($i, $(i+1))
+            if(n==2) tx = to_bytes($i, $(i+1))
+        }
+    }
     printf "%.0f\n", rx + tx
     exit
 }
