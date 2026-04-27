@@ -15,7 +15,7 @@ apt install -y gcc make git ufw
 
 echo "=== [2/6] 编译安装 3proxy ==="
 cd /usr/local/src
-[ -d 3proxy ] || git clone https://github.com/z3APA3A/3proxy.git
+[ -d 3proxy ] || git clone --branch 0.9.5 --depth 1 https://github.com/z3APA3A/3proxy.git
 cd 3proxy
 make -f Makefile.Linux
 
