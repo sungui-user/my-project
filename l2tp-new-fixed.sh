@@ -50,8 +50,8 @@ cat > /etc/xl2tpd/xl2tpd.conf <<EOF
 port = 1701
 
 [lns default]
-ip range = 192.168.18.10-192.168.18.250
-local ip = 192.168.18.1
+ip range = 192.168.33.10-192.168.33.250
+local ip = 192.168.33.1
 require chap = yes
 refuse pap = yes
 require authentication = yes
@@ -90,7 +90,7 @@ sed -i 's/^DEFAULT_FORWARD_POLICY=.*/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/defa
 # 添加 UFW NAT 规则（before.rules）
 UFW_RULES=/etc/ufw/before.rules
 if ! grep -q "^*nat" $UFW_RULES; then
-  sed -i "1i *nat\n:POSTROUTING ACCEPT [0:0]\n-A POSTROUTING -s 192.168.18.0/24 -o $PUBLIC_INTERFACE -j MASQUERADE\nCOMMIT\n" $UFW_RULES
+  sed -i "1i *nat\n:POSTROUTING ACCEPT [0:0]\n-A POSTROUTING -s 192.168.33.0/24 -o $PUBLIC_INTERFACE -j MASQUERADE\nCOMMIT\n" $UFW_RULES
 fi
 
 # 添加 SSH 放行（重要）
@@ -104,7 +104,7 @@ ufw disable
 ufw --force enable
 
 # 保留 legacy iptables 规则并允许 SSH
-iptables -t nat -A POSTROUTING -s 192.168.18.0/24 -o $PUBLIC_INTERFACE -j MASQUERADE
+iptables -t nat -A POSTROUTING -s 192.168.33.0/24 -o $PUBLIC_INTERFACE -j MASQUERADE
 iptables -I INPUT -p udp --dport 500 -j ACCEPT
 iptables -I INPUT -p udp --dport 4500 -j ACCEPT
 iptables -I INPUT -p udp --dport 1701 -j ACCEPT
